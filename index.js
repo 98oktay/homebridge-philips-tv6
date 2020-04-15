@@ -99,7 +99,7 @@ class PhilipsTvAccessory {
             });
 
         inputs.forEach((item, index) => {
-            const input = this.createInputSource("input" + index, item.name, index);
+            const input = this.createInputSource(item.name, item.name, index);
             this.tvService.addLinkedService(input);
             this.services.push(input);
         });

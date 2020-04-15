@@ -128,6 +128,8 @@ class PhilipsTV {
             await this.sendKey("Confirm");
         } else if (input.launch) {
             await this.launchApp(input.launch);
+        } else {
+            await this.sendKey("WatchTV");
         }
         callback(null);
     };
@@ -151,23 +153,15 @@ class PhilipsTV {
     };
 
     setVolumeState = (value, callback) => {
-
-        const current = Math.round(this.volume.min + (this.volume.max - this.volume.min) * (value / 100));
-        this.request("audio/volume", {
-            ...this.volume,
-            current
-        }).then((data) => {
-            callback(null, current)
-        });
+        this.volume.current = Math.round(this.volume.min + (this.volume.max - this.volume.min) * (value / 100));
+        this.request("audio/volume",this.volume);
+        callback(null, value);
     };
 
     setMuteState = (value, callback) => {
-        this.request("audio/volume", {
-            muted: value,
-            current: this.volume.current,
-        }).then((data) => {
-            callback(null, value)
-        });
+        this.volume.muted = !value;
+        this.request("audio/volume",this.volume);
+        callback(null, value);
     };
 
     setAmbilightState = (value, callback) => {
