@@ -14,7 +14,7 @@ This plugin has additional support for Voice control, Ambilight brightness contr
 
 ## Configuration
 Example accessory config (needs to be added to the homebridge config.json):
-```json
+```
 "accessories": [
     {
       "accessory": "PhilipsTV",
@@ -36,7 +36,7 @@ Example accessory config (needs to be added to the homebridge config.json):
 ]
 ```
 To be able to power on the TV with Wake On Lan option (WOL://YOUR:TV:MAC:ADDRESS). In this option, the TV must be connected to your modem with a LAN cable.
-```json
+```
 "accessories": [
    {
     ...
@@ -46,7 +46,7 @@ To be able to power on the TV with Wake On Lan option (WOL://YOUR:TV:MAC:ADDRESS
 ]
 ```
 Application launch option for Android TVs
-```json
+```
 "accessories": [
    {
     ...
