@@ -11,11 +11,8 @@ class PhilipsTV {
     };
 
     constructor(config) {
-        const api_version = 6;
-        const protocol = api_version > 5 ? "https" : "http";
-        const port = api_version > 5 ? "1926" : "1925";
         const wolURL = config.wol_url;
-        const baseURL = protocol + "://" + config.ip_address + ":" + port + "/" + api_version + "/";
+        const baseURL = `https://${config.ip_address}:1926/6/`;
         const httpOptions = {
             rejectUnauthorized: false,
             timeout: 3000,
@@ -74,7 +71,6 @@ class PhilipsTV {
                 }
             }
         };
-
         this.request("ambilight/power");
     }
 
@@ -141,6 +137,7 @@ class PhilipsTV {
             callback(null, false)
         })
     };
+
     getVolumeState = (callback) => {
         this.request("audio/volume").then((data) => {
             this.volume = {
@@ -182,8 +179,6 @@ class PhilipsTV {
         }
 
     }
-
-
 }
 
 module.exports = PhilipsTV;

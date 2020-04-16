@@ -1,7 +1,6 @@
 'use strict';
 const pkg = require('./package.json');
 const PhilipsTV = require('./PhilipsTV.js');
-
 const pluginName = pkg.name;
 const accessoryName = 'PhilipsTV';
 let Service, Characteristic;
@@ -25,10 +24,14 @@ class PhilipsTvAccessory {
 
         this.registerAccessoryInformationService();
         this.registerTelevisionService();
-        this.registerInputService();
-        this.registerAmbilightService();
         this.registerVolumeService();
 
+        if (config.has_ambilight) {
+            this.registerAmbilightService();
+        }
+        if (config.inputs) {
+            this.registerInputService();
+        }
     }
 
     identify(callback) {
@@ -42,12 +45,11 @@ class PhilipsTvAccessory {
         const infoService = new Service.AccessoryInformation();
         infoService
             .setCharacteristic(Name, name)
-            .setCharacteristic(Manufacturer, pkg.author)
+            .setCharacteristic(Manufacturer, "Philips")
             .setCharacteristic(Model, "Year " + model_year)
             .setCharacteristic(FirmwareRevision, pkg.version);
         this.services.push(infoService);
     };
-
 
     registerTelevisionService = () => {
 
@@ -103,33 +105,30 @@ class PhilipsTvAccessory {
             this.tvService.addLinkedService(input);
             this.services.push(input);
         });
-
     };
 
     registerAmbilightService = () => {
-        const {name, has_ambilight, poll_status_interval} = this.config;
+        const {name, poll_status_interval} = this.config;
 
-        if (has_ambilight) {
-            this.ambilightService = new Service.Lightbulb(name + " Ambilight", "tvAmbilight");
-            const ambilightPower = this.ambilightService.getCharacteristic(Characteristic.On);
-            ambilightPower
-                .on('get', this.PhilipsTV.getAmbilightState)
-                .on('set', (value, callback) => {
-                    this.state.ambilight = value;
-                    this.PhilipsTV.setAmbilightState(value, callback)
-                });
-            this.services.push(this.ambilightService);
+        this.ambilightService = new Service.Lightbulb(name + " Ambilight", "tvAmbilight");
+        const ambilightPower = this.ambilightService.getCharacteristic(Characteristic.On);
+        ambilightPower
+            .on('get', this.PhilipsTV.getAmbilightState)
+            .on('set', (value, callback) => {
+                this.state.ambilight = value;
+                this.PhilipsTV.setAmbilightState(value, callback)
+            });
+        this.services.push(this.ambilightService);
 
-            if (poll_status_interval) {
-                setInterval(() => {
-                    this.PhilipsTV.getAmbilightState((err, value) => {
-                        if (this.state.ambilight !== value) {
-                            this.state.ambilight = value;
-                            ambilightPower.updateValue(value)
-                        }
-                    })
-                }, poll_status_interval * 1000);
-            }
+        if (poll_status_interval) {
+            setInterval(() => {
+                this.PhilipsTV.getAmbilightState((err, value) => {
+                    if (this.state.ambilight !== value) {
+                        this.state.ambilight = value;
+                        ambilightPower.updateValue(value)
+                    }
+                })
+            }, poll_status_interval * 1000);
         }
     };
 
@@ -164,7 +163,6 @@ class PhilipsTvAccessory {
             }, poll_status_interval * 1000);
         }
         this.services.push(this.volumeService);
-
     };
 
     createInputSource(id, name, number, type = Characteristic.InputSourceType.TV) {
@@ -178,11 +176,9 @@ class PhilipsTvAccessory {
     }
 
     getServices() {
-
         return this.services;
     }
 }
-
 
 module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
