@@ -1,0 +1,15 @@
+.*.swp
+._*
+.DS_Store
+.git
+.hg
+.npmrc
+.lock-wscript
+.svn
+.wafpickle-*
+config.gypi
+CVS
+config.sample.json
+yarn.lock
+homebridge-philips-tv6-preview.gif
+npm-debug.log

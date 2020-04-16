@@ -1,0 +1,69 @@
+{
+  "bridge": {
+    "name": "HomebridgeDev",
+    "username": "CC:22:3D:E3:CE:37",
+    "port": 51826,
+    "pin": "031-45-213"
+  },
+  "accessories": [
+    {
+      "accessory": "PhilipsTV",
+      "name": "Television",
+      "ip_address": "192.168.0.12",
+      "poll_status_interval": 30,
+      "model_year": 2016,
+      "has_ambilight": true,
+      "username": "5l6n66UK7PYBVKAU",
+      "password": "de8d0d1911a6d3662540114e1b3a5f29a473cc413bf6b38afb97820facdcb1fb",
+      "inputs": [
+        {
+          "name": "TV Mode"
+        },
+        {
+          "name": "Youtube",
+          "launch": {
+            "intent": {
+              "component": {
+                "packageName": "com.google.android.youtube.tv",
+                "className": "com.google.android.apps.youtube.tv.activity.ShellActivity"
+              },
+              "action": "android.intent.action.MAIN"
+            }
+          }
+        },
+        {
+          "name": "Netflix",
+          "launch": {
+            "intent": {
+              "component": {
+                "packageName": "com.netflix.ninja",
+                "className": "com.netflix.ninja.MainActivity"
+              },
+              "action": "android.intent.action.MAIN"
+            }
+          }
+        },
+        {
+          "name": "Fox",
+          "channel": 9
+        },
+        {
+          "name": "TV 8",
+          "channel": 8
+        },
+        {
+          "name": "Kanal D",
+          "channel": 3
+        },
+        {
+          "name": "ATV",
+          "channel": 2
+        },
+        {
+          "name": "Star TV",
+          "channel": 4
+        }
+      ]
+    }
+  ]
+}
