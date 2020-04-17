@@ -3,6 +3,7 @@ const wol = require('wake_on_lan');
 
 class PhilipsTV {
     request = null;
+    channelList = [];
     volume = {
         min: 0,
         max: 0,
@@ -81,6 +82,7 @@ class PhilipsTV {
             callback(null, false)
         })
     };
+
     setPowerState = (value, callback) => {
         if (value) {
             this.wake((wolState) => {
@@ -94,7 +96,21 @@ class PhilipsTV {
     };
 
     sendKey = key => this.request("input/key", {key});
+    setChannel = ccid => this.request("activities/tv", {channel: {ccid}, channelList: {id: "allsat"}});
     launchApp = app => this.request("activities/launch", app);
+    getChannelList = () => this.request("channeldb/tv/channelLists/all").then((response) => {
+        if (response) {
+            return response.Channel;
+        }
+        return [];
+    });
+    presetToCCid = async preset => {
+        if (!this.channelList.length) {
+            this.channelList = await this.getChannelList();
+        }
+        const channel = this.channelList.filter(item => parseInt(item.preset) === parseInt(preset)).pop();
+        return channel ? channel.ccid : 0;
+    };
 
     getCurrentSource = (inputs) => {
         return new Promise(async (resolve, reject) => {
@@ -120,8 +136,10 @@ class PhilipsTV {
     setSource = async (input, callback) => {
         if (input.channel) {
             await this.sendKey("WatchTV");
-            await this.sendKey("Digit" + input.channel);
-            await this.sendKey("Confirm");
+//            await this.sendKey("Digit" + input.channel);
+//            await this.sendKey("Confirm");
+            const ccid = await this.presetToCCid(input.channel);
+            await this.setChannel(ccid);
         } else if (input.launch) {
             await this.launchApp(input.launch);
         } else {
@@ -151,13 +169,13 @@ class PhilipsTV {
 
     setVolumeState = (value, callback) => {
         this.volume.current = Math.round(this.volume.min + (this.volume.max - this.volume.min) * (value / 100));
-        this.request("audio/volume",this.volume);
+        this.request("audio/volume", this.volume);
         callback(null, value);
     };
 
     setMuteState = (value, callback) => {
         this.volume.muted = !value;
-        this.request("audio/volume",this.volume);
+        this.request("audio/volume", this.volume);
         callback(null, value);
     };
 
@@ -177,7 +195,6 @@ class PhilipsTV {
                 callback(null, false)
             })
         }
-
     }
 }
 
