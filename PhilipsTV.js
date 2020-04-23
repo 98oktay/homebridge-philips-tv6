@@ -2,7 +2,7 @@ const request = require("request");
 const wol = require('wake_on_lan');
 
 class PhilipsTV {
-    request = null;
+    api = null;
     channelList = [];
     volume = {
         min: 0,
@@ -14,20 +14,17 @@ class PhilipsTV {
     constructor(config) {
         const wolURL = config.wol_url;
         const baseURL = `https://${config.ip_address}:1926/6/`;
-        const httpOptions = {
-            rejectUnauthorized: false,
-            timeout: 3000,
-            auth: {
-                user: config.username,
-                pass: config.password,
-                sendImmediately: false
-            }
-        };
 
-        this.request = (path, body = null) => {
+        this.api = (path, body = null) => {
             return new Promise((success, fail) => {
                 request({
-                    ...httpOptions,
+                    rejectUnauthorized: false,
+                    timeout: 3000,
+                    auth: {
+                        user: config.username,
+                        pass: config.password,
+                        sendImmediately: false
+                    },
                     method: body ? "POST" : "GET",
                     body: typeof body === "object" ? JSON.stringify(body) : body,
                     url: `${baseURL}${path}`
@@ -72,14 +69,13 @@ class PhilipsTV {
                 }
             }
         };
-        this.request("ambilight/power");
     }
 
     getPowerState = (callback) => {
-        this.request("powerstate").then((data) => {
-            callback(null, data.powerstate === "On")
-        }).catch(() => {
-            callback(null, false)
+        this.api("powerstate").then((data) => {
+            callback && callback(null, data.powerstate === "On")
+        }).catch((e) => {
+            callback && callback(null, false)
         })
     };
 
@@ -88,17 +84,20 @@ class PhilipsTV {
             this.wake((wolState) => {
             });
         }
-        this.request("powerstate", {
+
+        this.api("powerstate", {
             powerstate: value ? "On" : "Standby"
         }).then((data) => {
             callback(null, value)
-        })
+        }).catch(() => {
+            callback(null, false)
+        });
     };
 
-    sendKey = key => this.request("input/key", {key});
-    setChannel = ccid => this.request("activities/tv", {channel: {ccid}, channelList: {id: "allsat"}});
-    launchApp = app => this.request("activities/launch", app);
-    getChannelList = () => this.request("channeldb/tv/channelLists/all").then((response) => {
+    sendKey = key => this.api("input/key", {key});
+    setChannel = ccid => this.api("activities/tv", {channel: {ccid}, channelList: {id: "allsat"}});
+    launchApp = app => this.api("activities/launch", app);
+    getChannelList = () => this.api("channeldb/tv/channelLists/all").then((response) => {
         if (response) {
             return response.Channel;
         }
@@ -114,22 +113,26 @@ class PhilipsTV {
 
     getCurrentSource = (inputs) => {
         return new Promise(async (resolve, reject) => {
-            const current = await this.request("activities/current");
-            const currentPkgname = current.component.packageName;
-            let currentTvPreset = 0;
-            let selected = 0;
-            if (currentPkgname === "org.droidtv.channels" || currentPkgname === "org.droidtv.playtv") {
-                const currentTV = await this.request("activities/tv");
-                currentTvPreset = parseInt(currentTV.channel.preset, 10);
-            }
-            inputs.forEach((item, index) => {
-                if (currentTvPreset && item.channel === currentTvPreset) {
-                    selected = index
-                } else if (item.launch && item.launch.intent && item.launch.intent.component.packageName === currentPkgname) {
-                    selected = index
+            try {
+                const current = await this.api("activities/current");
+                const currentPkgname = current.component.packageName;
+                let currentTvPreset = 0;
+                let selected = 0;
+                if (currentPkgname === "org.droidtv.channels" || currentPkgname === "org.droidtv.playtv") {
+                    const currentTV = await this.api("activities/tv");
+                    currentTvPreset = parseInt(currentTV.channel.preset, 10);
                 }
-            });
-            resolve(selected)
+                inputs.forEach((item, index) => {
+                    if (currentTvPreset && item.channel === currentTvPreset) {
+                        selected = index
+                    } else if (item.launch && item.launch.intent && item.launch.intent.component.packageName === currentPkgname) {
+                        selected = index
+                    }
+                });
+                resolve(selected)
+            } catch (e) {
+                resolve(0)
+            }
         })
     };
 
@@ -149,7 +152,7 @@ class PhilipsTV {
     };
 
     getAmbilightState = (callback) => {
-        this.request("ambilight/power").then((data) => {
+        this.api("ambilight/power").then((data) => {
             callback(null, data.power === "On")
         }).catch(() => {
             callback(null, false)
@@ -157,43 +160,55 @@ class PhilipsTV {
     };
 
     getVolumeState = (callback) => {
-        this.request("audio/volume").then((data) => {
+        this.api("audio/volume").then((data) => {
             this.volume = {
                 ...this.volume,
                 ...data
             };
             const volume = Math.floor(((this.volume.current - this.volume.min) / (this.volume.max - this.volume.min)) * 100);
             callback(null, volume)
+        }).catch(() => {
+            callback(null, false)
         })
     };
 
     setVolumeState = (value, callback) => {
         this.volume.current = Math.round(this.volume.min + (this.volume.max - this.volume.min) * (value / 100));
-        this.request("audio/volume", this.volume);
-        callback(null, value);
+        this.api("audio/volume", this.volume).then(() => {
+            callback(null, value);
+        }).catch(() => {
+            callback(null, false)
+        });
     };
 
     setMuteState = (value, callback) => {
         this.volume.muted = !value;
-        this.request("audio/volume", this.volume);
-        callback(null, value);
+        this.api("audio/volume", this.volume).then(() => {
+            callback(null, value);
+        }).catch(() => {
+            callback(null, false)
+        });
     };
 
     setAmbilightState = (value, callback) => {
         if (value) {
-            this.request("ambilight/currentconfiguration", {
+            this.api("ambilight/currentconfiguration", {
                 styleName: "FOLLOW_VIDEO",
                 isExpert: false,
                 menuSetting: "NATURAL"
             }).then((data) => {
                 callback(null, true)
-            })
+            }).catch(() => {
+                callback(null, false)
+            });
         } else {
-            this.request("ambilight/power", {
+            this.api("ambilight/power", {
                 power: "Off"
             }).then((data) => {
                 callback(null, false)
-            })
+            }).catch(() => {
+                callback(null, false)
+            });
         }
     }
 }
