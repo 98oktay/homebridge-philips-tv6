@@ -83,12 +83,19 @@ _The: ```{ "name": "TV Mode" }``` input default launch is "Watch Tv" command._
 ## Credentials for 2016 (and newer?) models with Android TV
 
 As per [this project](https://github.com/suborb/philips_android_tv) the Android TV 2016 models Philips use an authenticated HTTPS [JointSpace](http://jointspace.sourceforge.net/) API version 6.
-Every control- or status-call needs [digest authentification](https://en.wikipedia.org/wiki/Digest_access_authentication) which contains of a pre generated username and password. You have to do this once for your TV. We reccomend to use the python script [philips\_android\_tv](https://github.com/suborb/philips_android_tv).
+Every control- or status-call needs [digest authentification](https://en.wikipedia.org/wiki/Digest_access_authentication) which contains of a pre generated username and password. You have to do this once for your TV. We recommend to use the python script [philips\_android\_tv](https://github.com/suborb/philips_android_tv).
 
 Here is an example pairing call for philips\_android\_tv :
 ```
 python ./philips.py --host 192.168.0.12 pair
 ```
+
+As a fresh alternative for python3 you can use [pylips](https://github.com/eslavnov/pylips#setting-up-pylips):
+
+```
+python3 pylips.py
+```
+Username and password will be located in `settings.ini`
 
 You can then add username and password key in your homebridge config, example:
 ```
