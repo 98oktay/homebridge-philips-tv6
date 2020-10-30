@@ -74,6 +74,17 @@ Application launch option for Android TVs
                 }
             }
         },
+        {"name": "Kodi",
+            "launch": {
+                "intent": {
+                    "component": {
+                        "packageName": "org.xbmc.kodi",
+                        "className": "org.xbmc.kodi.Splash"
+                    },
+                    "action": "android.intent.action.MAIN"
+                }
+            }
+        }
       ]
    }
 ]
