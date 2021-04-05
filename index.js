@@ -19,8 +19,9 @@ class PhilipsTvAccessory {
     tvService = null;
 
     constructor(log, config) {
+        this.log = log;
         this.config = {...this.config, ...config};
-        this.PhilipsTV = new PhilipsTV(config);
+        this.PhilipsTV = new PhilipsTV(config, log);
 
         this.registerAccessoryInformationService();
         this.registerTelevisionService();
@@ -80,6 +81,8 @@ class PhilipsTvAccessory {
 
         this.tvService = tvService;
         this.services.push(tvService);
+
+        this.log(`Initialized TV: ${name}, ${this.config.model_year} model`);
     };
 
     registerInputService = () => {
