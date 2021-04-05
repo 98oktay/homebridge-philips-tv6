@@ -11,9 +11,17 @@ class PhilipsTV {
         muted: false
     };
 
-    constructor(config) {
+    constructor(config, log) {
         const wolURL = config.wol_url;
-        const baseURL = `https://${config.ip_address}:1926/6/`;
+        var baseURL = `https://${config.ip_address}:1926/6/`;
+        this.model_year = config.model_year;
+        this.log = log;
+
+        if (this.model_year == 2015) {
+            baseURL = `http://${config.ip_address}:1925/6/`;
+        } else {
+            baseURL = `https://${config.ip_address}:1926/6/`;
+        }
 
         this.api = (path, body = null) => {
             return new Promise((success, fail) => {
@@ -139,10 +147,13 @@ class PhilipsTV {
     setSource = async (input, callback) => {
         if (input.channel) {
             await this.sendKey("WatchTV");
-//            await this.sendKey("Digit" + input.channel);
-//            await this.sendKey("Confirm");
-            const ccid = await this.presetToCCid(input.channel);
-            await this.setChannel(ccid);
+            if (this.model_year == 2015) {
+                await this.sendKey("Digit" + input.channel);
+                await this.sendKey("Confirm");
+            } else {
+                const ccid = await this.presetToCCid(input.channel);
+                await this.setChannel(ccid);
+            }
         } else if (input.launch) {
             await this.launchApp(input.launch);
         } else {

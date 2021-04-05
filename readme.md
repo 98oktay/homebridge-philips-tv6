@@ -45,6 +45,16 @@ To be able to power on the TV with Wake On Lan option (WOL://YOUR:TV:MAC:ADDRESS
    }
 ]
 ```
+If you have a non-Android TV but it does have JointSpace functionality (check by going to http://YOUR.TV.IP.ADDRESS:1925/6/, it should say "Forbidden"), use "2015" as the model.
+```
+"accessories": [
+   {
+    ...
+    "model_year": 2015
+    ...
+   }
+]
+```
 Application launch option for Android TVs
 ```
 "accessories": [
